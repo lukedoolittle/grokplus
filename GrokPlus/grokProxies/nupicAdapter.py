@@ -20,7 +20,11 @@ class nupicAdapter(object):
       fileExtension = os.path.splitext(basename)[1]
       optionsDict = {'maxWorkers' : 4}
 
-      return permutations_runner.runWithJsonFile(fileArgPath, optionsDict, outputLabel, permWorkDir)
+      #run this in a thread
+      #also can use runWithConfig to dodge having to write the json configuration to a file
+      f = open('out.txt', 'w')
+      permutations_runner.runWithJsonFile(fileArgPath, optionsDict, outputLabel, permWorkDir) >> 'Filename:', filename  # or f.write('...\n')
+      f.close()
 
 
 
