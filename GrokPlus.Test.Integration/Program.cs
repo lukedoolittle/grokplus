@@ -1,8 +1,15 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
+using GrokPlus.Test.Integration.Encodings;
+using Microsoft.VisualBasic.FileIO;
 using NetMQ;
+using NetMQ.Sockets;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Pacman.Domain.Events;
+using Pacman.Domain.Write.Encodings;
+using Pacman.Framework.Serialization;
 
 namespace GrokPlus.Test.Integration
 {
@@ -10,13 +17,22 @@ namespace GrokPlus.Test.Integration
     {
         private static void Main(string[] args)
         {
-            var subscriberPort = args[0];
-            var publisherPort = args[1];
+            //var subscriberPort = 6001;
+            var publisherPort = 6000;
+
+            JsonConvert.DefaultSettings = () => new JsonSerializerSettings
+            {
+                MissingMemberHandling = MissingMemberHandling.Ignore,
+                DefaultValueHandling = DefaultValueHandling.Ignore,
+                ContractResolver = new PrivateMembersContractResolver(),
+                TypeNameHandling = TypeNameHandling.All
+            };
 
             //Console.WriteLine("Starting subscriber...");
             //Task.Run(() => Subscriber(subscriberPort)).ConfigureAwait(false);
+
             Console.WriteLine("Starting publisher...");
-            Task.Run(() => Publisher(publisherPort)).ConfigureAwait(false);
+            Task.Run(() => Publisher(publisherPort.ToString())).ConfigureAwait(false);
 
             Console.WriteLine("Starting indefinite loop...");
             while (true)
@@ -24,27 +40,27 @@ namespace GrokPlus.Test.Integration
             }
         }
 
-        private static void Subscriber(string port)
-        {
-            string topic = "TopicA"; // one of "TopicA" or "TopicB"
+        //private static void Subscriber(string port)
+        //{
+        //    string topic = "TopicA"; // one of "TopicA" or "TopicB"
 
-            using (var context = NetMQContext.Create())
-            using (var subSocket = context.CreateSubscriberSocket())
-            {
-                subSocket.Options.ReceiveHighWatermark = 1000;
-                subSocket.Connect($"tcp://127.0.0.1:{port}");
-                subSocket.Subscribe(topic);
-                Console.WriteLine("$Subscriber socket connecting to port {port}...");
+        //    using (var context = NetMQContext.Create())
+        //    using (var subSocket = context.CreateSubscriberSocket())
+        //    {
+        //        subSocket.Options.ReceiveHighWatermark = 1000;
+        //        subSocket.Connect($"tcp://127.0.0.1:{port}");
+        //        subSocket.Subscribe(topic);
+        //        Console.WriteLine("$Subscriber socket connecting to port {port}...");
 
-                while (true)
-                {
-                    string messageTopicReceived = subSocket.ReceiveString();
-                    Console.WriteLine("Receiving message...");
-                    string messageReceived = subSocket.ReceiveString();
-                    Console.WriteLine(messageReceived);
-                }
-            }
-        }
+        //        while (true)
+        //        {
+        //            string messageTopicReceived = subSocket.ReceiveString();
+        //            Console.WriteLine("Receiving message...");
+        //            string messageReceived = subSocket.ReceiveString();
+        //            Console.WriteLine(messageReceived);
+        //        }
+        //    }
+        //}
 
         private static void Publisher(string port)
         {
@@ -55,61 +71,83 @@ namespace GrokPlus.Test.Integration
                 pubSocket.Options.SendHighWatermark = 1000;
                 pubSocket.Bind($"tcp://127.0.0.1:{port}");
 
-                var rand = new Random(50);
                 var personId = Guid.NewGuid();
 
                 System.Threading.Thread.Sleep(1000);
-                var metric = CreateMetric("mood", personId, 0, 10);
-                pubSocket.SendMore("MetricCreated").Send(metric.ToString().Replace("\n", "").Replace("\r", ""));
 
-                System.Threading.Thread.Sleep(1000);
-                metric = CreateMetric("sleep", personId, 0, 5);
-                pubSocket.SendMore("MetricCreated").Send(metric.ToString().Replace("\n", "").Replace("\r", ""));
+                CreateMetric<Metric1>(personId, pubSocket);
+                CreateMetric<Metric2>(personId, pubSocket);
+                CreateMetric<Metric3>(personId, pubSocket);
+                CreateMetric<Metric4>(personId, pubSocket);
+                CreateMetric<Metric5>(personId, pubSocket);
 
-                while (true)
+                while (false)
                 {
-                    System.Threading.Thread.Sleep(1000);
-                    var randomizedTopic = rand.NextDouble();
+                    using (TextFieldParser parser = new TextFieldParser(@"test1.csv"))
+                    {
+                        parser.TextFieldType = FieldType.Delimited;
+                        parser.SetDelimiters(",");
 
-                    JObject msg = new JObject();
+                        //The first three lines don't contain metric readings
+                        //so throw them away
+                        parser.ReadFields();
+                        parser.ReadFields();
+                        parser.ReadFields();
 
-                    msg = randomizedTopic > 0.5 ? CreateReading("mood", personId, 0, 10) : CreateReading("sleep", personId, 0, 5);
+                        while (!parser.EndOfData)
+                        {
+                            //Processing row
+                            string[] fields = parser.ReadFields();
 
-                    Console.WriteLine("Sending message : {0}", msg.ToString());
-                    pubSocket.SendMore("EncodingCreated").Send(msg.ToString().Replace("\n", "").Replace("\r", ""));
+                            if (fields == null ||
+                                !fields.Any())
+                            {
+                                throw new Exception();
+                            }
+
+                            string timestamp = fields[0];
+
+                            CreateEncoding<Metric1>(fields[1], timestamp, personId, pubSocket);
+                            CreateEncoding<Metric2>(fields[2], timestamp, personId, pubSocket);
+                            CreateEncoding<Metric3>(fields[3], timestamp, personId, pubSocket);
+                            CreateEncoding<Metric4>(fields[4], timestamp, personId, pubSocket);
+                            CreateEncoding<Metric5>(fields[5], timestamp, personId, pubSocket);
+                        }
+                    }
                 }
             }
         }
 
-        private static JObject CreateMetric(string metric, Guid personId, decimal minValue, decimal maxValue)
+        private static void CreateMetric<TEncoding>(
+            Guid personId, 
+            PublisherSocket socket)
+            where TEncoding : Encoding
         {
-            return new JObject
-            {
-                [nameof(personId)] = personId.ToString(),
-                [nameof(metric)] = metric,
-                [nameof(minValue)] = minValue,
-                [nameof(maxValue)] = maxValue
-            };
+            var metric = new MetricCreated<TEncoding>(
+                -1, 
+                1, 
+                typeof(float), 
+                ReduceEnum.Average, 
+                Guid.NewGuid(), 
+                personId);
+            var json = metric.AsJson(false).Replace("\n", "").Replace("\r", "");
+            socket.SendMore(metric.GetType().Name).Send(json);
         }
 
-        private static JObject CreateReading(string metric, Guid personId, decimal minValue, decimal maxValue)
+        private static void CreateEncoding<TEncoding>(
+            string value,
+            string timestamp,
+            Guid personId,
+            PublisherSocket socket)
+            where TEncoding : Encoding
         {
-            return new JObject
-            {
-                [nameof(personId)] = personId.ToString(),
-                [nameof(metric)] = metric,
-                ["value"] = RandomNumberBetween(minValue, maxValue),
-                ["timestamp"] = System.DateTime.Now
-            };
-        }
-
-        private static readonly Random random = new Random();
-
-        private static decimal RandomNumberBetween(decimal minValue, decimal maxValue)
-        {
-            decimal next = Convert.ToDecimal(random.NextDouble());
-
-            return minValue + ((decimal)next * (maxValue - minValue));
+            var encoding = new EncodingCreated<Metric1>(
+                JValue.CreateString(value),
+                Convert.ToDateTime(timestamp),
+                Guid.NewGuid(),
+                personId);
+            var json = encoding.AsJson(false).Replace("\n", "").Replace("\r", "");
+            socket.SendMore(encoding.GetType().Name).Send(json);
         }
     }
 }

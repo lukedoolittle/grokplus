@@ -7,6 +7,7 @@ def main (subscriber):
     subscriber.subscribe("MetricCreated")
     subscriber.subscribe("EncodingCreated")
 
+    print("subscriber running...")
     subscriber.run()
 
 if __name__ == '__main__':

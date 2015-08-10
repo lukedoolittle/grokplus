@@ -1,4 +1,4 @@
-﻿from grokProxies.repository import repository
+﻿from grokAdapters.repository import repository
 from grokConfiguration.couchbaseConfiguration import couchbaseConfiguration
 from couchbase.bucket import Bucket
 from grokTasks.learningTask import learningTask

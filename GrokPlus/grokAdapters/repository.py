@@ -1,5 +1,6 @@
 ﻿import json
 from couchbase.views.params import Query
+from grokFramework.jsonPayload import jsonPayload
 
 class repository(object):
     def __init__(self, couchbaseBucket, designDocument):
@@ -25,4 +26,4 @@ class repository(object):
         # since we want docids, select the elements with index 2
         docids = [row[2] for row in rows]
         results = self.bucket.get_multi(docids).values()
-        return [result.value for result in results]
+        return [jsonPayload(result.value) for result in results]

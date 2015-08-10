@@ -33,6 +33,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.VisualBasic" />
     <Reference Include="NetMQ, Version=3.3.0.11, Culture=neutral, PublicKeyToken=a6decef4ddc58b3a, processorArchitecture=MSIL">
       <HintPath>..\packages\NetMQ.3.3.0.11\lib\net40\NetMQ.dll</HintPath>
       <Private>True</Private>
@@ -51,12 +52,26 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Encodings\Encoding.cs" />
+    <Compile Include="Encodings\Metric1.cs" />
+    <Compile Include="Encodings\Metric2.cs" />
+    <Compile Include="Encodings\Metric3.cs" />
+    <Compile Include="Encodings\Metric4.cs" />
+    <Compile Include="Encodings\Metric5.cs" />
+    <Compile Include="Events\EncodingCreated.cs" />
+    <Compile Include="Events\Event.cs" />
+    <Compile Include="Events\MetricCreated.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Serialization\PrivateMembersContractResolver.cs" />
+    <Compile Include="Serialization\SerializationExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
+    <None Include="test1.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

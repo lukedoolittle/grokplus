@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>042e488d-8257-4aee-aca1-7c21b2f88fda</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>grokTests\tests.py</StartupFile>
+    <StartupFile>grokplus.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -38,23 +38,29 @@
     <Compile Include="espresso.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="grokFramework\jsonPayload.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="grokFramework\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="grokplus.py" />
-    <Compile Include="grokProxies\mockRepository.py">
+    <Compile Include="grokAdapters\nupicAdapter.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="grokProxies\nupicAdapter.py">
+    <Compile Include="grokAdapters\repository.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="grokProxies\repository.py">
+    <Compile Include="grokAdapters\zmqAdapter.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="grokProxies\zmqProxy.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="grokProxies\__init__.py">
+    <Compile Include="grokAdapters\__init__.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="grokTasks\learningTask.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="grokTasks\scheduler.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="grokTests\tests.py">
@@ -66,14 +72,13 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="config.json" />
-    <Content Include="runBroker.bat" />
-    <Content Include="runGrok.bat" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="grokConfiguration\" />
-    <Folder Include="grokProxies\" />
+    <Folder Include="grokAdapters\" />
     <Folder Include="grokTasks\" />
     <Folder Include="grokTests\" />
+    <Folder Include="grokFramework\" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

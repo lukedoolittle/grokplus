@@ -1,7 +1,7 @@
 ﻿import sys
 import os
 
-from nupic.swarming import permutations_runner
+#from nupic.swarming import permutations_runner
 
 class nupicAdapter(object):
     def __init__(self):

@@ -1,8 +1,5 @@
 ﻿import csv
-
-class jsonPayload(object):
-    def __init__(self, object):
-        self.__dict__ = object
+import random
 
 class learningTask(object):
     def __init__(self, configuration, repository, nupic, configurationFileLocation, csvFileLocation):
@@ -12,29 +9,45 @@ class learningTask(object):
         self._configurationFileLocation = configurationFileLocation
         self._csvFileLocation = csvFileLocation
 
-    def swarm(self, personId, targetMetric, startTime, endTime, timeStepInMs):
+    def createModel(self, personId):
+        pass
+        # have to figure out here how to determine the starttime, endtime and timestep
+
+    def createModel(self, personId, starttime, endtime, timestep):
         metrics = repository.getByView("metricsView", personId)
-        self._configuration.addMetrics(metrics, "float")
+
+        #for now we'll randomly pick a metric
+        targetMetric = random.choice(metrics)
+        
+        return self.swarm(personId, metrics, targetMetric.metric, starttime, endtime, timestep)
+
+    def swarm(self, personId, metrics, targetMetric, startTime, endTime, timeStepInMs):
+        self._configuration.addMetrics(metrics)
         self._configuration.setPredictedField(self, targetMetric)
         with open(self._configurationFileLocation, 'w') as outfile:
             outfile.write(self._configuration.getConfiguration())
 
         matrix = self._createSampleMatrix(metrics, "sampleView", personId)
 
-        metricNames = [metric["metric"] for metric in metrics]
-        metricNames.insert(0, "timestamp")
-        dataTypes = ["float" for metric in metricNames]
-        flags = ["" for metric in metricNames]
-
+        flags = ["" for metric in metrics]
+        dataTypes.insert(0, "")
         matrix.insert(0, flags)
+
+        metricNames = [metric.metric for metric in metrics]
+        metricNames.insert(0, "timestamp")
         matrix.insert(0, dataTypes)
+
+        dataTypes = [metric.metricType for metric in metrics]
+        dataTypes.insert(0, "float")  # marking the timestamp column as a float
         matrix.insert(0, metricNames)
 
         with open(self._csvFileLocation, "wb") as csvFile:
             writer = csv.writer(csvFile)
             writer.writerows(matrix)
 
-        self._nupic.permutations_runner(self._configurationFileLocation)
+        #change this here so we don't have to write to a file
+        #TODO uncomment this
+        #self._nupic.permutations_runner(self._configurationFileLocation)
 
     def forecast(self):
         pass
@@ -46,18 +59,15 @@ class learningTask(object):
         matrix = []
         currentMetricCount = 0
         
-        for metricDictionary in metrics:
-            metric = jsonPayload(metricDictionary)
+        for metric in metrics:
             reduceFunction = self._createReduceFunction(metric.reduce)
-            print("getting all samples for metric " + metric.metric)
             samples = self._repository.getByView("samplesView", personId + metric.metric)
 
             currentTimeStepCount = 0
-            print("starting creation loop....")
             while True:
                 currentTimeStepStart = beginTime + (timeStepInMs * currentTimeStepCount)
                 currentTimeStepEnd = beginTime + (timeStepInMs * (currentTimeStepCount + 1))
-                my_list = [sample for sample in samples if sample['timestamp'] >= currentTimeStepStart and sample['timestamp'] < currentTimeStepEnd]
+                my_list = [sample for sample in samples if sample.timestamp >= currentTimeStepStart and sample.timestamp < currentTimeStepEnd]
 
                 if len(my_list) == 0:
                     value = None
@@ -68,7 +78,6 @@ class learningTask(object):
                     matrix.append([currentTimeStepStart])
 
                 matrix[currentTimeStepCount].append(value)
-                print("finished creating value for time step " + str(currentTimeStepCount))
                 currentTimeStepCount += 1
                 if currentTimeStepEnd >= endTime:
                     break
@@ -76,10 +85,10 @@ class learningTask(object):
         return matrix
 
     def _createReduceFunction(self, reduceType):
-        if reduceType == 'sum':
-            return lambda x: sum(float(i['value']) for i in x)
+        if reduceType == 'Sum':
+            return lambda x: sum(float(i.value) for i in x)
         else:
-            return lambda x: sum(float(i['value']) for i in x)/len(x)
+            return lambda x: sum(float(i.value) for i in x)/len(x)
 
         
 

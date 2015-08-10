@@ -4,6 +4,7 @@ import sys
 
 import zmq
 from zmq.devices import monitored_queue
+from threading import Thread
 
 class espresso(object):
     def __init__(self, subscriberPort, publisherPort):
@@ -11,10 +12,10 @@ class espresso(object):
         self._publisherPort = publisherPort
 
     def run(self):
-        l_thread = Thread(target=runBroker, args=(self._subscriberPort, self._publisherPort))
+        l_thread = Thread(target=self.runBroker)
         l_thread.start()
 
-    def zpipe(ctx):
+    def zpipe(self, ctx):
         """build inproc pipe for talking to threads
         mimic pipe used in czmq zthread_fork.
         Returns a pair of PAIRs connected via inproc
@@ -28,7 +29,7 @@ class espresso(object):
         b.connect(iface)
         return a,b
 
-    def listener_thread (pipe):
+    def listener_thread (self, pipe):
 
         # Print everything that arrives on pipe
         while True:
@@ -38,26 +39,25 @@ class espresso(object):
                 if e.errno == zmq.ETERM:
                     break           # Interrupted
 
-    def runBroker (subscriberPort, publisherPort):
+    def runBroker (self):
 
         # Start child threads
         ctx = zmq.Context.instance()
 
-        pipe = zpipe(ctx)
+        pipe = self.zpipe(ctx)
 
-        print("Connecting subscriber to port " + subscriberPort)
+        print ("broker connecting to subscriber port " + self._subscriberPort)
         subscriber = ctx.socket(zmq.XSUB)
-        subscriber.connect("tcp://localhost:" + subscriberPort)
+        subscriber.connect("tcp://localhost:" + self._subscriberPort)
 
-        print("Connecting publisher to port " + publisherPort)
+        print ("broker binding to publisher port " + self._publisherPort)
         publisher = ctx.socket(zmq.XPUB)
-        publisher.bind("tcp://*:" + publisherPort)
+        publisher.bind("tcp://*:" + self._publisherPort)
 
-        print("Starting listener...")
-        l_thread = Thread(target=listener_thread, args=(pipe[1],))
+        l_thread = Thread(target=self.listener_thread, args=(pipe[1],))
         l_thread.start()
 
-        print("Monitoring queue...")
+        print("Broker online...")
         try:
             monitored_queue(subscriber, publisher, pipe[0], 'pub', 'sub')
         except KeyboardInterrupt:
