@@ -1,0 +1,40 @@
+﻿{
+    "subscriberPort" : "6001",
+    "publisherPort" : "6000",
+    "couchbaseUrl": "couchbase://localhost/default",
+    "designDocumentName": "samples",
+    "samplesViewName": "samplesView",
+    "metricsViewName": "metricsView",
+    "samplesMapFunction": "function (doc, meta) {    if (doc.personId && (doc.value || doc.value === 0) && doc.metric && doc.timestamp) {        emit(doc.personId+doc.metric, null);    }}",
+    "metricsMapFunction": "function(doc, meta) {    if (doc.metric && doc.personId && (doc.minValue || doc.minValue === 0) && (doc.maxValue || doc.maxValue === 0)) {        emit(doc.personId, null);    }}",
+    
+    //"swarmPythonFileLocation": "nupic/scripts/run_swarm.py",
+    "csvFileLocation": "sampleswarm.csv",
+    "swarmConfigurationFileLocation": "search_def.json",
+    "swarmConfiguration": {
+        "includedFields": [ ],
+        "streamDef": {
+            "info": "test",
+            "version": 1,
+            "streams": [
+                {
+                    "info": "sampleswarm.csv",
+                    "source": "file://sampleswarm.csv",
+                    "columns": [
+                        "*"
+                    ]
+                }
+            ]
+        },
+        "inferenceType": "TemporalAnomaly",
+        "inferenceArgs": {
+            "predictionSteps": [
+                1
+            ],
+            "predictedField": ""
+        },
+        "iterationCount": -1,
+        "spCoincInputPoolPct": 0.8,
+        "swarmSize": "medium"
+    }
+}

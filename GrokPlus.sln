@@ -1,0 +1,32 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.23107.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "GrokPlus", "GrokPlus\GrokPlus.pyproj", "{042E488D-8257-4AEE-ACA1-7C21B2F88FDA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GrokPlus.Test.Integration", "GrokPlus.Test.Integration\GrokPlus.Test.Integration.csproj", "{05665A02-D916-4E23-9E37-F027C008A393}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{47E564DE-37A9-4D98-B49A-13594CD5008F}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+		setup.sh = setup.sh
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{042E488D-8257-4AEE-ACA1-7C21B2F88FDA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{042E488D-8257-4AEE-ACA1-7C21B2F88FDA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{05665A02-D916-4E23-9E37-F027C008A393}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{05665A02-D916-4E23-9E37-F027C008A393}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{05665A02-D916-4E23-9E37-F027C008A393}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{05665A02-D916-4E23-9E37-F027C008A393}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
