@@ -1,6 +1,9 @@
-﻿import binascii
+﻿from grokFramework.jsonPayload import fileToJson
+
+import binascii
 import os
 import sys
+import datetime
 
 import zmq
 from zmq.devices import monitored_queue
@@ -10,10 +13,6 @@ class espresso(object):
     def __init__(self, subscriberPort, publisherPort):
         self._subscriberPort = subscriberPort
         self._publisherPort = publisherPort
-
-    def run(self):
-        l_thread = Thread(target=self.runBroker)
-        l_thread.start()
 
     def zpipe(self, ctx):
         """build inproc pipe for talking to threads
@@ -34,12 +33,12 @@ class espresso(object):
         # Print everything that arrives on pipe
         while True:
             try:
-                print (pipe.recv_multipart())
+                print (str(datetime.datetime.now()) + " " + str(pipe.recv_multipart()))
             except zmq.ZMQError as e:
                 if e.errno == zmq.ETERM:
                     break           # Interrupted
 
-    def runBroker (self):
+    def startBroker(self):
 
         # Start child threads
         ctx = zmq.Context.instance()
@@ -66,4 +65,6 @@ class espresso(object):
         del subscriber, publisher, pipe
         ctx.term()
 
-
+if __name__ == '__main__':
+    configuration = fileToJson('config.json')
+    espresso(configuration.publisherPort, configuration.subscriberPort).startBroker()

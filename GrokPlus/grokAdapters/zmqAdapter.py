@@ -1,4 +1,5 @@
 ﻿from grokFramework.jsonPayload import jsonPayload
+from threading import Thread
 
 import zmq
 import uuid
@@ -22,13 +23,20 @@ class zmqAdapter(object):
         while True:
             try:
                 message = self._subscriber.recv_multipart()[1]
-                self._repository.put(message, uuid.uuid4())
-                jsonMessage = json.loads(message)
-                self._scheduler.addNew(jsonMessage["personId"], self._callback)
+                processThread = Thread(target=self._putMessage, args=[message])
+                processThread.start();
+
             except zmq.ZMQError as e:
                 if e.errno == zmq.ETERM:
                     break           # Interrupted
                 else:
                     raise
+    
+    #TODO this should be factored out 
+    def _putMessage(self, message):
+            self._repository.put(message, uuid.uuid4())
+            personId = json.loads(message)["personId"]
+            self._scheduler.addNew(personId, self._callback)
+            self._scheduler.reset(personId)
 
 

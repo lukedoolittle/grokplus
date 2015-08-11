@@ -1,5 +1,6 @@
 ﻿import csv
 import random
+import json
 
 class learningTask(object):
     def __init__(self, configuration, repository, nupic, configurationFileLocation, csvFileLocation):
@@ -11,34 +12,39 @@ class learningTask(object):
 
     def createModel(self, personId):
         pass
-        # have to figure out here how to determine the starttime, endtime and timestep
+        # TODO: have to figure out here how to determine the starttime, endtime and timestep
 
     def createModel(self, personId, starttime, endtime, timestep):
-        metrics = repository.getByView("metricsView", personId)
+        metrics = self._repository.getByView("metricsView", personId)
 
-        #for now we'll randomly pick a metric
-        targetMetric = random.choice(metrics)
+        # remove any duplicate metric definitions; for now the pruning is arbitrary
+        seen = set()
+        seen_add = seen.add
+        uniqueMetrics = [ x for x in metrics if not (x.personId+x.metric in seen or seen_add(x.personId+x.metric)) ]
+
+        # for now we'll randomly pick a metric
+        targetMetric = random.choice(uniqueMetrics)
         
-        return self.swarm(personId, metrics, targetMetric.metric, starttime, endtime, timestep)
+        return self.swarm(personId, uniqueMetrics, targetMetric.metric, starttime, endtime, timestep)
 
     def swarm(self, personId, metrics, targetMetric, startTime, endTime, timeStepInMs):
         self._configuration.addMetrics(metrics)
-        self._configuration.setPredictedField(self, targetMetric)
+        self._configuration.setPredictedField(targetMetric)
         with open(self._configurationFileLocation, 'w') as outfile:
-            outfile.write(self._configuration.getConfiguration())
+            json.dump(self._configuration.getConfiguration().__dict__, outfile)
 
-        matrix = self._createSampleMatrix(metrics, "sampleView", personId)
+        matrix = self._createSampleMatrix(metrics, "sampleView", personId, startTime, endTime, timeStepInMs)
 
         flags = ["" for metric in metrics]
-        dataTypes.insert(0, "")
+        flags.insert(0, "")
         matrix.insert(0, flags)
-
-        metricNames = [metric.metric for metric in metrics]
-        metricNames.insert(0, "timestamp")
-        matrix.insert(0, dataTypes)
 
         dataTypes = [metric.metricType for metric in metrics]
         dataTypes.insert(0, "float")  # marking the timestamp column as a float
+        matrix.insert(0, dataTypes)
+
+        metricNames = [metric.metric for metric in metrics]
+        metricNames.insert(0, "timestamp")
         matrix.insert(0, metricNames)
 
         with open(self._csvFileLocation, "wb") as csvFile:
@@ -62,11 +68,11 @@ class learningTask(object):
         for metric in metrics:
             reduceFunction = self._createReduceFunction(metric.reduce)
             samples = self._repository.getByView("samplesView", personId + metric.metric)
-
             currentTimeStepCount = 0
             while True:
                 currentTimeStepStart = beginTime + (timeStepInMs * currentTimeStepCount)
                 currentTimeStepEnd = beginTime + (timeStepInMs * (currentTimeStepCount + 1))
+                #TODO might have to convert the timestamps into unix format here
                 my_list = [sample for sample in samples if sample.timestamp >= currentTimeStepStart and sample.timestamp < currentTimeStepEnd]
 
                 if len(my_list) == 0:

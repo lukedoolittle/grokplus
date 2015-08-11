@@ -25,5 +25,7 @@ class repository(object):
         # the resulting row view from bucket.query is [key, value, docid, doc]
         # since we want docids, select the elements with index 2
         docids = [row[2] for row in rows]
+        if len(docids) == 0:
+            return []
         results = self.bucket.get_multi(docids).values()
         return [jsonPayload(result.value) for result in results]

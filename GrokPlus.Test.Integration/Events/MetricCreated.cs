@@ -16,11 +16,15 @@ namespace Pacman.Domain.Events
         [JsonProperty("maxValue")]
         public decimal MaximumValue { get; private set; }
 
+        public Type MetricType { get; private set; }
+
         [JsonProperty("metricType")]
-        public string MetricValueType { get; private set; }
+        public string MetricValueType => MetricType.Name == "Single" ? "float" : MetricType.Name;
+
+        public ReduceEnum ReduceType { get; private set; }
 
         [JsonProperty("reduce")]
-        public ReduceEnum ReduceType { get; private set; }
+        public string Reduce => ReduceType.ToString();
 
         public MetricCreated(
             decimal minimumValue,
@@ -32,7 +36,7 @@ namespace Pacman.Domain.Events
         {
             MinimumValue = minimumValue;
             MaximumValue = maximumValue;
-            MetricValueType = metricType.Name;
+            MetricType = metricType;
             ReduceType = reduce;
             Id = id;
             AggregateId = aggregateId;

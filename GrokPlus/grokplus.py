@@ -12,7 +12,6 @@ def main (subscriber):
 
 if __name__ == '__main__':
     bootstrap().run()
-    serviceLocator.getService('espresso').run()
     main(serviceLocator.getService('subscriber'))
 
 
