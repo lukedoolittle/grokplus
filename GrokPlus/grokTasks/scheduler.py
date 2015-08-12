@@ -9,26 +9,32 @@ class job(Thread):
         self.arg = arg
         self.finished = Event()
         self.resetted = True
+        self.cancelled = False
 
     def cancel(self):
+        print("thread cancelled")
+        self.cancelled = True
         self.finished.set()
 
     def run(self):
-        print("running a new job...")
-        while self.resetted:
+        timeout = False
+        while self.resetted and not self.cancelled and not timeout:
+            print("restarting timer loop")
             self.resetted = False
-            self.finished.wait(self.interval)
+            timeout = not self.finished.wait(self.interval)
 
-        if not self.finished.isSet():
-            print("calling function for a job...")
-            self.finished.set()
+        print("through timer loop with timeout " + str(timeout))
+
+        if timeout:
+            print("running scheduled function")
             self.function(self.arg)
+        self.finished.set()
         
     def reset(self, interval = None):
         if interval:
             self.interval = interval
         
-        print ("job reset")
+        print("reset called")
         self.resetted = True
         self.finished.set()
         self.finished.clear()
@@ -39,12 +45,12 @@ class scheduler(object):
         self._lock = Lock()
         self._jobs = {}
 
-    def addNew(self, personId, function):
+    def createJobIfNew(self, personId, function):
         self._lock.acquire()
         try:
             if self._jobs.get(personId, None) == None:
                 newJob = job(self._invokeDelay, function, personId)    
-                newJob.run()
+                newJob.start()
                 self._jobs[personId] = newJob
         finally:
             self._lock.release()

@@ -12,14 +12,14 @@ namespace Pacman.Domain.Events
         public JValue Payload { get; private set; }
 
         [JsonProperty("timestamp")]
-        public DateTimeOffset Timestamp { get; private set; }
+        public string Timestamp { get; private set; }
 
         [JsonProperty("metric")]
         public string Metric => typeof (TEncoding).Name;
 
         public EncodingCreated(
             JValue payload,
-            DateTimeOffset timestamp,
+            string timestamp,
             Guid id,
             Guid aggregateId)
         {

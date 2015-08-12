@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using GrokPlus.Test.Integration.Encodings;
 using Microsoft.VisualBasic.FileIO;
@@ -73,46 +74,52 @@ namespace GrokPlus.Test.Integration
 
                 var personId = Guid.NewGuid();
 
-                System.Threading.Thread.Sleep(1000);
+                Thread.Sleep(1000);
 
+                Console.WriteLine("Create metric Metric1");
                 CreateMetric<Metric1>(personId, pubSocket);
+                Console.WriteLine("Create metric Metric2");
                 CreateMetric<Metric2>(personId, pubSocket);
+                Console.WriteLine("Create metric Metric3");
                 CreateMetric<Metric3>(personId, pubSocket);
+                Console.WriteLine("Create metric Metric4");
                 CreateMetric<Metric4>(personId, pubSocket);
+                Console.WriteLine("Create metric Metric5");
                 CreateMetric<Metric5>(personId, pubSocket);
 
-                while (false)
+                Console.WriteLine("Getting samples from csv...");
+                using (TextFieldParser parser = new TextFieldParser(@"test1.csv"))
                 {
-                    using (TextFieldParser parser = new TextFieldParser(@"test1.csv"))
+                    parser.TextFieldType = FieldType.Delimited;
+                    parser.SetDelimiters(",");
+
+                    //The first three lines don't contain metric readings
+                    //so throw them away
+                    Console.WriteLine("Throwing away opening lines...");
+                    parser.ReadFields();
+                    parser.ReadFields();
+                    parser.ReadFields();
+
+                    while (!parser.EndOfData)
                     {
-                        parser.TextFieldType = FieldType.Delimited;
-                        parser.SetDelimiters(",");
+                        Console.WriteLine("Got a row");
+                        //Processing row
+                        string[] fields = parser.ReadFields();
 
-                        //The first three lines don't contain metric readings
-                        //so throw them away
-                        parser.ReadFields();
-                        parser.ReadFields();
-                        parser.ReadFields();
-
-                        while (!parser.EndOfData)
+                        if (fields == null ||
+                            !fields.Any())
                         {
-                            //Processing row
-                            string[] fields = parser.ReadFields();
-
-                            if (fields == null ||
-                                !fields.Any())
-                            {
-                                throw new Exception();
-                            }
-
-                            string timestamp = fields[0];
-
-                            CreateEncoding<Metric1>(fields[1], timestamp, personId, pubSocket);
-                            CreateEncoding<Metric2>(fields[2], timestamp, personId, pubSocket);
-                            CreateEncoding<Metric3>(fields[3], timestamp, personId, pubSocket);
-                            CreateEncoding<Metric4>(fields[4], timestamp, personId, pubSocket);
-                            CreateEncoding<Metric5>(fields[5], timestamp, personId, pubSocket);
+                            throw new Exception();
                         }
+
+                        string timestamp = fields[0];
+
+                        Console.WriteLine("Creating 5 encodings");
+                        CreateEncoding<Metric1>(fields[1], timestamp, personId, pubSocket);
+                        CreateEncoding<Metric2>(fields[2], timestamp, personId, pubSocket);
+                        CreateEncoding<Metric3>(fields[3], timestamp, personId, pubSocket);
+                        CreateEncoding<Metric4>(fields[4], timestamp, personId, pubSocket);
+                        CreateEncoding<Metric5>(fields[5], timestamp, personId, pubSocket);
                     }
                 }
             }
@@ -141,9 +148,9 @@ namespace GrokPlus.Test.Integration
             PublisherSocket socket)
             where TEncoding : Encoding
         {
-            var encoding = new EncodingCreated<Metric1>(
+            var encoding = new EncodingCreated<TEncoding>(
                 JValue.CreateString(value),
-                Convert.ToDateTime(timestamp),
+                timestamp,
                 Guid.NewGuid(),
                 personId);
             var json = encoding.AsJson(false).Replace("\n", "").Replace("\r", "");

@@ -67,4 +67,4 @@ class espresso(object):
 
 if __name__ == '__main__':
     configuration = fileToJson('config.json')
-    espresso(configuration.publisherPort, configuration.subscriberPort).startBroker()
+    espresso(configuration['publisherPort'], configuration['subscriberPort']).startBroker()
