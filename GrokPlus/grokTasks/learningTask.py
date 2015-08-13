@@ -1,14 +1,30 @@
 ﻿import csv
 import random
 import json
+import datetime
 
 class learningTask(object):
-    def __init__(self, configuration, repository, nupic, configurationFileLocation, csvFileLocation):
+    def __init__(self, configuration, repository, nupic, csvFileLocation, swarmInterval, sampleThreshold):
         self._configuration = configuration
         self._repository = repository
         self._nupic = nupic
-        self._configurationFileLocation = configurationFileLocation
         self._csvFileLocation = csvFileLocation
+        self._swarmInterval = swarmInterval
+        self._newSampleThreshold = sampleThreshold
+        self._lastSampleCount = 0
+
+    def createModelIfOld(self, personId, starttime, endtime, timestep):
+        print("checking model age")
+        modelAge = (datetime.datetime.now() - self._configuration.modelLastModified()).total_hours()
+        if modelAge > self._swarmInterval:
+            print("model is old!!! checking sample delta")
+            currentSampleCount = self._repository.getByView("sampleCountView", personId)
+            sampleDelta = currentSampleCount - self._lastSampleCount
+            if sampleDelta < self._newSampleThreshold:
+                print("creating model")
+                self.createModel(personId, starttime, endtime, timestep)
+            self._lastSampleCount = currentSampleCount
+        return False
 
     def createModel(self, personId):
         pass
@@ -30,11 +46,11 @@ class learningTask(object):
     def swarm(self, personId, metrics, targetMetric, startTime, endTime, timeStepInMs):
         self._configuration.addMetrics(metrics)
         self._configuration.setPredictedField(targetMetric)
-        with open(self._configurationFileLocation, 'w') as outfile:
-            json.dump(self._configuration.getConfiguration(), outfile)
+        self._configuration.saveConfiguration()
 
         matrix = self._createSampleMatrix(metrics, "sampleView", personId, startTime, endTime, timeStepInMs)
 
+        #TODO you can simplify this with syntax
         flags = ["" for metric in metrics]
         flags.insert(0, "")
         matrix.insert(0, flags)
@@ -47,6 +63,7 @@ class learningTask(object):
         metricNames.insert(0, "timestamp")
         matrix.insert(0, metricNames)
 
+        #TODO use the repository for this
         with open(self._csvFileLocation, "wb") as csvFile:
             writer = csv.writer(csvFile)
             writer.writerows(matrix)
@@ -67,13 +84,19 @@ class learningTask(object):
         
         for metric in metrics:
             reduceFunction = self._createReduceFunction(metric['reduce'])
+            print("call to database to get all samples for " + personId + metric['metric'])
             samples = self._repository.getByView("samplesView", personId + metric['metric'])
             currentTimeStepCount = 0
+            print("got samples counting size")
+            samplecount = 0
+            for sample in samples:
+                samplecount += 1
+            print("retrieved " + str(samplecount) + " samples")
             while True:
                 currentTimeStepStart = beginTime + (timeStepInMs * currentTimeStepCount)
                 currentTimeStepEnd = beginTime + (timeStepInMs * (currentTimeStepCount + 1))
                 #TODO might have to convert the timestamps into unix format here
-                my_list = [sample for sample in samples if sample['timestamp'] >= currentTimeStepStart and sample['timestamp'] < currentTimeStepEnd]
+                my_list = [sample for sample in samples if float(sample['timestamp']) >= currentTimeStepStart and float(sample['timestamp']) < currentTimeStepEnd]
 
                 if len(my_list) == 0:
                     value = None

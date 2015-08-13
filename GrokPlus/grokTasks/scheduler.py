@@ -1,42 +1,25 @@
 ﻿from threading import Thread, Lock, Event, Timer
 import time
 
-class job(Thread):
-    def __init__(self, interval, function, arg):
-        Thread.__init__(self)
-        self.interval = interval
-        self.function = function
-        self.arg = arg
-        self.finished = Event()
-        self.resetted = True
-        self.cancelled = False
-        self.timeout = False
-
-    def cancel(self):
-        print("thread cancelled")
-        self.cancelled = True
-        self.finished.set()
-
-    def run(self):
-        while self.resetted and not self.cancelled and not self.timeout:
-            print("restarting timer loop")
-            self.resetted = False
-            self.finished.clear()
-            self.timeout = not self.finished.wait(self.interval)
-
-        if self.timeout and not self.cancelled:
-            print("running scheduled function")
-            self.function(self.arg)
-        self.finished.set()
-        
-    def reset(self, interval = None):
-        if interval:
+class job(Thread):        
+        def __init__(self, interval, function, arg):
+            Thread.__init__(self)
             self.interval = interval
-        
-        print("reset called")
-        self.resetted = True
-        self.finished.set()
-        
+            self.function = function
+            self.arg = arg
+            self.finished = Event()
+
+        def run(self):
+            while True:
+                self.finished.wait(self.interval)
+                if self.finished.is_set():
+                    break
+                print("running function")
+                self.function(self.arg)
+
+        def cancel(self):
+            print("thread cancelled")
+            self.finished.set()
 
 class scheduler(object):
     def __init__(self, invokeDelay):
@@ -53,7 +36,3 @@ class scheduler(object):
                 self._jobs[personId] = newJob
         finally:
             self._lock.release()
-    
-    def reset(self, personId):
-        if self._jobs.get(personId, None) != None:
-            self._jobs[personId].reset()

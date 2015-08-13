@@ -23,8 +23,8 @@ class bootstrap(object):
         couchbaseUrl = configuration['couchbaseUrl']
         myBucket = Bucket(couchbaseUrl)
 
-        # 5 second delay after last sample to kick off swarm
-        myScheduler = scheduler(5)
+        # scheduler will run jobs every 10 seconds
+        myScheduler = scheduler(10)
 
         # for testing purposes
         timestep = 0.06283185307179587
@@ -32,15 +32,18 @@ class bootstrap(object):
         endtime = 94.18494775462199
 
         container['repository'] = lambda: repository(lambda: Bucket(couchbaseUrl), designDocumentName)
-        container['subscriber'] = lambda: zmqAdapter(str(subscriberPort), container['repository'](), container['scheduler'](), lambda x: container['learningTask']().createModel(x, starttime, endtime, timestep))
+        container['subscriber'] = lambda: zmqAdapter(str(subscriberPort), container['repository'](), container['scheduler'](), lambda x: container['learningTask']().createModelIfOld(x, starttime, endtime, timestep))
         container['nupic'] = lambda: nupicAdapter()
-        container['learningTask'] = lambda: learningTask(nupicConfiguration(configuration['swarmConfiguration']), container['repository'](), container['nupic'](), configuration['swarmConfigurationFileLocation'], configuration['csvFileLocation'])
+        container['nupicConfiguration'] = lambda: nupicConfiguration(configuration['swarmConfiguration'], configuration['swarmConfigurationFileLocation'])
+        #TODO put these in the configuration
+        container['learningTask'] = lambda: learningTask(container['nupicConfiguration'] (), container['repository'](), container['nupic'](), configuration['csvFileLocation'], 5, 50)
         container['espresso'] = lambda: espresso(publisherPort, subscriberPort)
         container['scheduler'] = lambda: myScheduler
 
         databaseConfiguration = couchbaseConfiguration(myBucket, designDocumentName)
-        databaseConfiguration.createMapView(configuration['samplesViewName'], configuration['samplesMapFunction'])
-        databaseConfiguration.createMapView(configuration['metricsViewName'], configuration['metricsMapFunction'])
+        databaseConfiguration.createMapView(configuration['samplesViewName'], configuration['samplesMapFunction'], None)
+        databaseConfiguration.createMapView(configuration['metricsViewName'], configuration['metricsMapFunction'], None)
+        databaseConfiguration.createMapView(configuration['sampleCountViewName'], configuration['sampleCountMapFunction'], configuration['sampleCountReduceFunction'])
 
         serviceLocator.setServiceLocator(container)
 

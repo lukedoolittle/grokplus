@@ -6,13 +6,19 @@ class couchbaseConfiguration(object):
         self.bucket = bucket
         self.designDocumentName = designDocumentName
 
-    def createMapView(self, viewName, mapFunction):
+    def createMapView(self, viewName, mapFunction, reduceFunction):
         try:
             designDocument = self.bucket.design_get(self.designDocumentName, False)
-            designDocument.value['views'][viewName] = { 'map': mapFunction }
-            self.bucket.design_create(self.designDocumentName, designDocument.value, False, 10000)
+            self._createView(designDocument.value, viewName, mapFunction, reduceFunction)
         except HTTPError:
             designDocument = { 'views': {} }
+            self._createView(designDocument, viewName, mapFunction, reduceFunction)
+
+    def _createView(self, designDocument, viewName, mapFunction, reduceFunction):
+        if reduceFunction == None:
             designDocument['views'][viewName] = { 'map': mapFunction }
-            self.bucket.design_create(self.designDocumentName, designDocument, False, 10000)
+        else:
+            designDocument['views'][viewName] = { 'map': mapFunction, 'reduce': reduceFunction }
+        self.bucket.design_create(self.designDocumentName, designDocument, False, 10000)
+
 

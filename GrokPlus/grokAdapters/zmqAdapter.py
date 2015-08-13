@@ -23,9 +23,6 @@ class zmqAdapter(object):
             try:
                 message = self._subscriber.recv_multipart()[1]
                 self._putMessage(message)
-                #processThread = Thread(target=self._putMessage, args=[message])
-                #processThread.start();
-
             except zmq.ZMQError as e:
                 if e.errno == zmq.ETERM:
                     break           # Interrupted
@@ -37,6 +34,5 @@ class zmqAdapter(object):
         self._repository.put(message, uuid.uuid4())
         personId = json.loads(message)["personId"]
         self._scheduler.createJobIfNew(personId, self._callback)
-        self._scheduler.reset(personId)
 
 
