@@ -10,6 +10,7 @@ class job(Thread):
         self.finished = Event()
         self.resetted = True
         self.cancelled = False
+        self.timeout = False
 
     def cancel(self):
         print("thread cancelled")
@@ -17,15 +18,13 @@ class job(Thread):
         self.finished.set()
 
     def run(self):
-        timeout = False
-        while self.resetted and not self.cancelled and not timeout:
+        while self.resetted and not self.cancelled and not self.timeout:
             print("restarting timer loop")
             self.resetted = False
-            timeout = not self.finished.wait(self.interval)
+            self.finished.clear()
+            self.timeout = not self.finished.wait(self.interval)
 
-        print("through timer loop with timeout " + str(timeout))
-
-        if timeout:
+        if self.timeout and not self.cancelled:
             print("running scheduled function")
             self.function(self.arg)
         self.finished.set()
@@ -37,7 +36,7 @@ class job(Thread):
         print("reset called")
         self.resetted = True
         self.finished.set()
-        self.finished.clear()
+        
 
 class scheduler(object):
     def __init__(self, invokeDelay):
