@@ -22,17 +22,14 @@ class zmqAdapter(object):
         while True:
             try:
                 message = self._subscriber.recv_multipart()[1]
-                self._putMessage(message)
+                self._repository.put(message, uuid.uuid4())
+                personId = json.loads(message)["personId"]
+                self._scheduler.createJobIfNew(personId, self._callback)
             except zmq.ZMQError as e:
                 if e.errno == zmq.ETERM:
                     break           # Interrupted
                 else:
                     raise
-    
-    #TODO this should be factored out 
-    def _putMessage(self, message):
-        self._repository.put(message, uuid.uuid4())
-        personId = json.loads(message)["personId"]
-        self._scheduler.createJobIfNew(personId, self._callback)
+
 
 

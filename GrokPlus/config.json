@@ -12,6 +12,8 @@
     "sampleCountReduceFunction":  "_count",
     "csvFileLocation": "sampleswarm.csv",
     "swarmConfigurationFileLocation": "search_def.json",
+    "swarmModelFileLocation" : "somelocation.txt",
+    "swarmIntervalInHours":  5,
     "swarmConfiguration": {
         "includedFields": [ ],
         "streamDef": {

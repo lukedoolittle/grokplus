@@ -34,9 +34,8 @@ class bootstrap(object):
         container['repository'] = lambda: repository(lambda: Bucket(couchbaseUrl), designDocumentName)
         container['subscriber'] = lambda: zmqAdapter(str(subscriberPort), container['repository'](), container['scheduler'](), lambda x: container['learningTask']().createModelIfOld(x, starttime, endtime, timestep))
         container['nupic'] = lambda: nupicAdapter()
-        container['nupicConfiguration'] = lambda: nupicConfiguration(configuration['swarmConfiguration'], configuration['swarmConfigurationFileLocation'])
-        #TODO put these in the configuration
-        container['learningTask'] = lambda: learningTask(container['nupicConfiguration'] (), container['repository'](), container['nupic'](), configuration['csvFileLocation'], 5, 50)
+        container['nupicConfiguration'] = lambda: nupicConfiguration(configuration['swarmConfiguration'], configuration['swarmConfigurationFileLocation'], configuration['swarmModelFileLocation'])
+        container['learningTask'] = lambda: learningTask(container['nupicConfiguration'] (), container['repository'](), container['nupic'](), configuration['csvFileLocation'], configuration['swarmIntervalInHours'])
         container['espresso'] = lambda: espresso(publisherPort, subscriberPort)
         container['scheduler'] = lambda: myScheduler
 
@@ -44,6 +43,8 @@ class bootstrap(object):
         databaseConfiguration.createMapView(configuration['samplesViewName'], configuration['samplesMapFunction'], None)
         databaseConfiguration.createMapView(configuration['metricsViewName'], configuration['metricsMapFunction'], None)
         databaseConfiguration.createMapView(configuration['sampleCountViewName'], configuration['sampleCountMapFunction'], configuration['sampleCountReduceFunction'])
+
+        # TODO need to prime the scheduler if there are any existing samples / models
 
         serviceLocator.setServiceLocator(container)
 

@@ -4,27 +4,17 @@ import json
 import datetime
 
 class learningTask(object):
-    def __init__(self, configuration, repository, nupic, csvFileLocation, swarmInterval, sampleThreshold):
+    def __init__(self, configuration, repository, nupic, csvFileLocation, swarmIntervalInHours):
         self._configuration = configuration
         self._repository = repository
         self._nupic = nupic
         self._csvFileLocation = csvFileLocation
-        self._swarmInterval = swarmInterval
-        self._newSampleThreshold = sampleThreshold
-        self._lastSampleCount = 0
+        self._swarmIntervalInHours = swarmIntervalInHours
 
     def createModelIfOld(self, personId, starttime, endtime, timestep):
-        print("checking model age")
-        modelAge = (datetime.datetime.now() - self._configuration.modelLastModified()).total_hours()
-        if modelAge > self._swarmInterval:
-            print("model is old!!! checking sample delta")
-            currentSampleCount = self._repository.getByView("sampleCountView", personId)
-            sampleDelta = currentSampleCount - self._lastSampleCount
-            if sampleDelta < self._newSampleThreshold:
-                print("creating model")
-                self.createModel(personId, starttime, endtime, timestep)
-            self._lastSampleCount = currentSampleCount
-        return False
+        modelAgeInHours = (datetime.datetime.now() - self._configuration.modelLastModified(personId)).seconds//3600
+        if modelAgeInHours > self._swarmIntervalInHours:
+            self.createModel(personId, starttime, endtime, timestep)
 
     def createModel(self, personId):
         pass
@@ -46,11 +36,11 @@ class learningTask(object):
     def swarm(self, personId, metrics, targetMetric, startTime, endTime, timeStepInMs):
         self._configuration.addMetrics(metrics)
         self._configuration.setPredictedField(targetMetric)
-        self._configuration.saveConfiguration()
+        #self._configuration.saveConfiguration(personId)
 
         matrix = self._createSampleMatrix(metrics, "sampleView", personId, startTime, endTime, timeStepInMs)
 
-        #TODO you can simplify this with syntax
+        #TODO (structural) you can simplify this with syntax
         flags = ["" for metric in metrics]
         flags.insert(0, "")
         matrix.insert(0, flags)
@@ -63,14 +53,13 @@ class learningTask(object):
         metricNames.insert(0, "timestamp")
         matrix.insert(0, metricNames)
 
-        #TODO use the repository for this
+        #TODO (structural) use the repository for this
         with open(self._csvFileLocation, "wb") as csvFile:
             writer = csv.writer(csvFile)
             writer.writerows(matrix)
 
-        #change this here so we don't have to write to a file
-        #TODO uncomment this
         #self._nupic.permutations_runner(self._configurationFileLocation)
+        self._nupic.permutations_runner(self._configuration.getConfiguration())
 
     def forecast(self):
         pass
@@ -95,7 +84,6 @@ class learningTask(object):
             while True:
                 currentTimeStepStart = beginTime + (timeStepInMs * currentTimeStepCount)
                 currentTimeStepEnd = beginTime + (timeStepInMs * (currentTimeStepCount + 1))
-                #TODO might have to convert the timestamps into unix format here
                 my_list = [sample for sample in samples if float(sample['timestamp']) >= currentTimeStepStart and float(sample['timestamp']) < currentTimeStepEnd]
 
                 if len(my_list) == 0:
