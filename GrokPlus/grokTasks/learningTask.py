@@ -1,19 +1,21 @@
-﻿import csv
+﻿
 import random
 import json
 import datetime
 
 class learningTask(object):
-    def __init__(self, configuration, repository, nupic, csvFileLocation, swarmIntervalInHours):
+    def __init__(self, configuration, repository, csvRepository, nupic, swarmIntervalInHours):
         self._configuration = configuration
         self._repository = repository
         self._nupic = nupic
-        self._csvFileLocation = csvFileLocation
+        self._dataRepository = csvRepository
         self._swarmIntervalInHours = swarmIntervalInHours
 
+    # TODO (structural) this should be part of its own class
     def createModelIfOld(self, personId, starttime, endtime, timestep):
         modelAgeInHours = (datetime.datetime.now() - self._configuration.modelLastModified(personId)).seconds//3600
         if modelAgeInHours > self._swarmIntervalInHours:
+            print("model is old! creating new...")
             self.createModel(personId, starttime, endtime, timestep)
 
     def createModel(self, personId):
@@ -53,12 +55,8 @@ class learningTask(object):
         metricNames.insert(0, "timestamp")
         matrix.insert(0, metricNames)
 
-        #TODO (structural) use the repository for this
-        with open(self._csvFileLocation, "wb") as csvFile:
-            writer = csv.writer(csvFile)
-            writer.writerows(matrix)
+        self._dataRepository.put(matrix, personId)
 
-        #self._nupic.permutations_runner(self._configurationFileLocation)
         self._nupic.permutations_runner(self._configuration.getConfiguration())
 
     def forecast(self):

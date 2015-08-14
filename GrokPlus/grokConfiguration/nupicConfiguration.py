@@ -16,16 +16,12 @@ class nupicConfiguration(object):
             metric = metrics[k];
             self._configuration['includedFields'].append({"fieldName": metric['metric'], "fieldType": metric['metricType'], "maxValue": metric['maxValue'], "minValue": metric['minValue']})
     
+    def setDataFileLocation(self, csvFileLocation, uniqueLocation):
+        filename = os.path.join(uniqueLocation, csvFileLocation)
+        self._configuration['streamDef']['streams'][0]['source'] = "file://" + filename
+
     def getConfiguration(self):
         return self._configuration
-
-    #TODO (structural) probably don't need this anymore
-    def saveConfiguration(self, uniqueLocation):
-        filename = os.path.join(uniqueLocation, self._configurationFileLocation)
-        if not os.path.exists(os.path.dirname(filename)):
-            os.makedirs(os.path.dirname(filename))
-        with open(filename, 'w') as outfile:
-            json.dump(self._configuration, outfile)
 
     def modelLastModified(self, uniqueLocation):
         filename = os.path.join(uniqueLocation, self._modelFileLocation)

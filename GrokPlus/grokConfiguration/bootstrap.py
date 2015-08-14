@@ -2,6 +2,7 @@
 from grokConfiguration.serviceLocator import serviceLocator
 from grokConfiguration.couchbaseConfiguration import couchbaseConfiguration
 from grokAdapters.repository import repository
+from grokAdapters.csvRepository import csvRepository
 from grokAdapters.zmqAdapter import zmqAdapter
 from grokAdapters.nupicAdapter import nupicAdapter
 from grokTasks.scheduler import scheduler
@@ -24,7 +25,7 @@ class bootstrap(object):
         myBucket = Bucket(couchbaseUrl)
 
         # scheduler will run jobs every 10 seconds
-        myScheduler = scheduler(10)
+        myScheduler = scheduler(35)
 
         # for testing purposes
         timestep = 0.06283185307179587
@@ -32,10 +33,11 @@ class bootstrap(object):
         endtime = 94.18494775462199
 
         container['repository'] = lambda: repository(lambda: Bucket(couchbaseUrl), designDocumentName)
+        container['csvRepository'] = lambda: csvRepository(configuration['csvFileLocation'])
         container['subscriber'] = lambda: zmqAdapter(str(subscriberPort), container['repository'](), container['scheduler'](), lambda x: container['learningTask']().createModelIfOld(x, starttime, endtime, timestep))
         container['nupic'] = lambda: nupicAdapter()
         container['nupicConfiguration'] = lambda: nupicConfiguration(configuration['swarmConfiguration'], configuration['swarmConfigurationFileLocation'], configuration['swarmModelFileLocation'])
-        container['learningTask'] = lambda: learningTask(container['nupicConfiguration'] (), container['repository'](), container['nupic'](), configuration['csvFileLocation'], configuration['swarmIntervalInHours'])
+        container['learningTask'] = lambda: learningTask(container['nupicConfiguration'] (), container['repository'](), container['csvRepository'](), container['nupic'](), configuration['swarmIntervalInHours'])
         container['espresso'] = lambda: espresso(publisherPort, subscriberPort)
         container['scheduler'] = lambda: myScheduler
 

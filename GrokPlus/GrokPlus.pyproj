@@ -22,6 +22,9 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="grokAdapters\csvRepository.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="grokConfiguration\bootstrap.py">
       <SubType>Code</SubType>
     </Compile>
