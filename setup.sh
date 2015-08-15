@@ -35,6 +35,7 @@ then
 	fi
 	
 	#Make sure development tools are up to date
+	easy_install numpy
 	yum -y install python-devel
 	yum -y install openssl-devel
 	yum -y install make automake gcc gcc-c++ kernel-devel git-core
@@ -48,11 +49,8 @@ then
 	#Clone the nupic repository
 	git clone https://github.com/numenta/nupic.git
 	
-	#Install NUPIC dependencies
-	cd nupic
-	pip install --allow-all-external --allow-unverified PIL --allow-unverified psutil -r external/common/requirements.txt
-
 	#Build and install NUPIC
+	cd nupic
 	python setup.py install
 
 	#Return to the root folder
