@@ -24,9 +24,12 @@ if [ $1 == "config" ]
 	echo '' >> /etc/sysctl.conf
 	echo '#Set swappiness to 0 to avoid swapping' >> /etc/sysctl.conf
 	echo 'vm.swappiness = 0' >> /etc/sysctl.conf
+
+	echo "Finished configuring system for couchbase. Reboot for configuration to take effect."
+	echo "sudo reboot"
 fi
 
-if [ $1 == "nupic" ]
+if [ $1 == "prereqs" ]
 then
 	#this has to be run as sudo
 	if [ $EUID -ne 0 ]
@@ -35,11 +38,13 @@ then
 	fi
 	
 	#Make sure development tools are up to date
-	easy_install numpy
+	yum -y update
+	yum -y groupinstall 'Development Tools'
 	yum -y install python-devel
 	yum -y install openssl-devel
 	yum -y install make automake gcc gcc-c++ kernel-devel git-core
 	yum -y install cmake
+	easy_install numpy
 
 	#Install SQL
 	yum install mysql-server -y
@@ -55,22 +60,10 @@ then
 
 	#Return to the root folder
 	cd ~
-fi
-
-if [ $1 == "couchbase" ]
-then
-	#this has to be run as sudo
-	if [ $EUID -ne 0 ]
-		then echo "Please run as root"
-		exit
-	fi
 
 	#Download and install Couchbase
 	wget http://packages.couchbase.com/releases/3.0.3/couchbase-server-enterprise-3.0.3-centos6.x86_64.rpm
 	rpm --install couchbase-server-enterprise-3.0.3-centos6.x86_64.rpm
-
-	#Add public interface to iptables
-	iptables -t nat -A PREROUTING -p tcp --dport 80 -j REDIRECT --to 3000
 
 	#Download and install C library for Python Couchbase interface
 	wget http://packages.couchbase.com/clients/c/couchbase-csdk-setup
@@ -78,9 +71,9 @@ then
 fi
 
 
-if [ $1 == "env" ]
+if [ $1 == "grokplus" ]
 then
-	#Install all of the dependencies via npm
+	git clone https://github.com/tecmobo/grokplus.git
 	cd grokplus/GrokPlus
 	pip install couchbase
 	pip install pyzmq
