@@ -20,6 +20,8 @@ namespace GrokPlus.Test.Integration
         {
             //var subscriberPort = 6001;
             var publisherPort = 6000;
+            var address = "localhost";
+            //var address = "52.21.106.130";
 
             JsonConvert.DefaultSettings = () => new JsonSerializerSettings
             {
@@ -33,7 +35,7 @@ namespace GrokPlus.Test.Integration
             //Task.Run(() => Subscriber(subscriberPort)).ConfigureAwait(false);
 
             Console.WriteLine("Starting publisher...");
-            Task.Run(() => Publisher(publisherPort.ToString())).ConfigureAwait(false);
+            Task.Run(() => Publisher(address, publisherPort.ToString())).ConfigureAwait(false);
 
             Console.WriteLine("Starting indefinite loop...");
             while (true)
@@ -63,14 +65,14 @@ namespace GrokPlus.Test.Integration
         //    }
         //}
 
-        private static void Publisher(string port)
+        private static void Publisher(string address, string port)
         {
             using (var context = NetMQContext.Create())
             using (var pubSocket = context.CreatePublisherSocket())
             {
                 Console.WriteLine($"Publisher socket binding to port {port}...");
                 pubSocket.Options.SendHighWatermark = 1000;
-                pubSocket.Bind($"tcp://127.0.0.1:{port}");
+                pubSocket.Connect($"tcp://{address}:{port}");
 
                 var personId = Guid.NewGuid();
 

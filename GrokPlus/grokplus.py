@@ -13,11 +13,6 @@ def main (subscriber):
 
 if __name__ == '__main__':
     bootstrap().run()
-
-    espresso = serviceLocator.getService('espresso')
-    print("starting espresso on a thread...")
-    Thread(target=espresso.startBroker).start()
-
     main(serviceLocator.getService('subscriber'))
 
 
