@@ -20,8 +20,8 @@ namespace GrokPlus.Test.Integration
         {
             //var subscriberPort = 6001;
             var publisherPort = 6000;
-            var address = "127.0.0.1";
-            //var address = "52.21.106.130";
+            //var address = "127.0.0.1";
+            var address = "52.21.106.130";
 
             JsonConvert.DefaultSettings = () => new JsonSerializerSettings
             {
@@ -72,7 +72,7 @@ namespace GrokPlus.Test.Integration
             {
                 Console.WriteLine($"Publisher socket binding to port {port}...");
                 pubSocket.Options.SendHighWatermark = 1000;
-                pubSocket.Connect($"tcp://{address}:{port}");
+                pubSocket.Bind($"tcp://{address}:{port}");
 
                 var personId = Guid.NewGuid();
 
