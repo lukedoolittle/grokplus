@@ -4,9 +4,10 @@ from couchbase.views.params import Query
 from couchbase.bucket import Bucket
 
 class repository(object):
-    def __init__(self, bucketUrl, designDocument):
+    def __init__(self, bucketUrl, designDocument, viewName):
         self._bucketUrl = bucketUrl
         self.designDocument = designDocument
+        self._viewName = viewName
 
     def put(self, object, id):
         bucket = Bucket(self._bucketUrl)
@@ -21,12 +22,12 @@ class repository(object):
         result = bucket.get(id)
         return result.value; 
 
-    def getByView(self, viewName, parameter):
+    def getByView(self, parameter):
         bucket = Bucket(self._bucketUrl)
         options = Query()
         options.mapkey_range = (str(parameter), str(parameter))
         options.stale = False
-        rows = bucket.query(self.designDocument, viewName, query=options)
+        rows = bucket.query(self.designDocument, self._viewName, query=options)
         # the resulting row view from bucket.query is [key, value, docid, doc]
         # since we want docids, select the elements with index 2
         docids = [row[2] for row in rows]

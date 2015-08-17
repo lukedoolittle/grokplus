@@ -42,7 +42,7 @@ class bootstrap(object):
         container['espresso'] = lambda: espresso(publisherPort, subscriberPort)
         container['scheduler'] = lambda: myScheduler
 
-        databaseConfiguration = couchbaseConfiguration(bucketUrl, designDocumentName)
+        databaseConfiguration = couchbaseConfiguration(designDocumentName, couchbaseUrl)
         databaseConfiguration.createMapView(configuration['samplesViewName'], configuration['samplesMapFunction'], None)
         databaseConfiguration.createMapView(configuration['metricsViewName'], configuration['metricsMapFunction'], None)
         #databaseConfiguration.createMapView(configuration['sampleCountViewName'], configuration['sampleCountMapFunction'], configuration['sampleCountReduceFunction'])

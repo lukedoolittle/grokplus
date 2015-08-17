@@ -16,7 +16,7 @@ if __name__ == '__main__':
 
     espresso = serviceLocator.getService('espresso')
     print("starting espresso on a thread...")
-    Thread(espresso.startBroker).start()
+    Thread(target=espresso.startBroker).start()
 
     main(serviceLocator.getService('subscriber'))
 
