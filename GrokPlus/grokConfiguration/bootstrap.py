@@ -9,7 +9,6 @@ from grokTasks.scheduler import scheduler
 from grokTasks.learningTask import learningTask
 from grokFramework.jsonPayload import fileToJson
 from espresso import espresso
-from couchbase.bucket import Bucket
 
 import json
 
@@ -22,9 +21,9 @@ class bootstrap(object):
         subscriberPort = configuration['subscriberPort']
         publisherPort = configuration['publisherPort']
         couchbaseUrl = configuration['couchbaseUrl']
-        myBucket = Bucket(couchbaseUrl)
+        samplesViewName = configuration['samplesViewName']
+        metricsViewName = configuration['metricsViewName']
 
-        # scheduler will run jobs every 10 seconds
         myScheduler = scheduler(35)
 
         # for testing purposes
@@ -32,19 +31,21 @@ class bootstrap(object):
         starttime = 0
         endtime = 94.18494775462199
 
-        container['repository'] = lambda: repository(lambda: Bucket(couchbaseUrl), designDocumentName)
+        container['repository'] = lambda: repository(couchbaseUrl, designDocumentName, "")
+        container['samplesRepository'] = lambda: repository(couchbaseUrl, designDocumentName, samplesViewName)
+        container['metricsRepository'] = lambda: repository(couchbaseUrl, designDocumentName, metricsViewName)
         container['csvRepository'] = lambda: csvRepository(configuration['csvFileLocation'])
         container['subscriber'] = lambda: zmqAdapter(str(subscriberPort), container['repository'](), container['scheduler'](), lambda x: container['learningTask']().createModelIfOld(x, starttime, endtime, timestep))
         container['nupic'] = lambda: nupicAdapter()
-        container['nupicConfiguration'] = lambda: nupicConfiguration(configuration['swarmConfiguration'], configuration['swarmConfigurationFileLocation'], configuration['swarmModelFileLocation'])
-        container['learningTask'] = lambda: learningTask(container['nupicConfiguration'] (), container['repository'](), container['csvRepository'](), container['nupic'](), configuration['swarmIntervalInHours'])
+        container['nupicConfiguration'] = lambda: nupicConfiguration(configuration['swarmConfiguration'], container['repository'], configuration['csvFileLocation'])
+        container['learningTask'] = lambda: learningTask(container['nupicConfiguration'] (), container['samplesRepository'](), container['metricsRepository'](), container['csvRepository'](), container['nupic'](), configuration['swarmIntervalInHours'])
         container['espresso'] = lambda: espresso(publisherPort, subscriberPort)
         container['scheduler'] = lambda: myScheduler
 
-        databaseConfiguration = couchbaseConfiguration(myBucket, designDocumentName)
+        databaseConfiguration = couchbaseConfiguration(bucketUrl, designDocumentName)
         databaseConfiguration.createMapView(configuration['samplesViewName'], configuration['samplesMapFunction'], None)
         databaseConfiguration.createMapView(configuration['metricsViewName'], configuration['metricsMapFunction'], None)
-        databaseConfiguration.createMapView(configuration['sampleCountViewName'], configuration['sampleCountMapFunction'], configuration['sampleCountReduceFunction'])
+        #databaseConfiguration.createMapView(configuration['sampleCountViewName'], configuration['sampleCountMapFunction'], configuration['sampleCountReduceFunction'])
 
         # TODO need to prime the scheduler if there are any existing samples / models
 

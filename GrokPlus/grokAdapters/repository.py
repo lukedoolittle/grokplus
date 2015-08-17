@@ -1,27 +1,28 @@
 ﻿import json
 
 from couchbase.views.params import Query
+from couchbase.bucket import Bucket
 
 class repository(object):
-    def __init__(self, couchbaseBucketGenerator, designDocument):
-        self._bucketGenerator = couchbaseBucketGenerator
+    def __init__(self, bucketUrl, designDocument):
+        self._bucketUrl = bucketUrl
         self.designDocument = designDocument
 
     def put(self, object, id):
-        bucket = self._bucketGenerator()
+        bucket = Bucket(self._bucketUrl)
         bucket.insert(id.urn[9:], json.loads(object))
 
     def putJson(self, json, id):
-        bucket = self._bucketGenerator()
+        bucket = Bucket(self._bucketUrl)
         bucket.insert(id.urn[9:], json)
 
     def get(self, id):
-        bucket = self._bucketGenerator()
+        bucket = Bucket(self._bucketUrl)
         result = bucket.get(id)
         return result.value; 
 
     def getByView(self, viewName, parameter):
-        bucket = self._bucketGenerator()
+        bucket = Bucket(self._bucketUrl)
         options = Query()
         options.mapkey_range = (str(parameter), str(parameter))
         options.stale = False

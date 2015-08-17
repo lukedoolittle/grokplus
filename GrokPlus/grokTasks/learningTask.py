@@ -1,12 +1,12 @@
-﻿
-import random
+﻿import random
 import json
 import datetime
 
 class learningTask(object):
-    def __init__(self, configuration, repository, csvRepository, nupic, swarmIntervalInHours):
+    def __init__(self, configuration, samplesRepository, metricsRepository, csvRepository, nupic, swarmIntervalInHours):
         self._configuration = configuration
-        self._repository = repository
+        self._samplesRepository = samplesRepository
+        self._metricsRepository = metricsRepository
         self._nupic = nupic
         self._dataRepository = csvRepository
         self._swarmIntervalInHours = swarmIntervalInHours
@@ -23,7 +23,7 @@ class learningTask(object):
         # TODO: have to figure out here how to determine the starttime, endtime and timestep
 
     def createModel(self, personId, starttime, endtime, timestep):
-        metrics = self._repository.getByView("metricsView", personId)
+        metrics = self._metricsRepository.getByView(personId)
 
         # remove any duplicate metric definitions; for now the pruning is arbitrary
         seen = set()
@@ -39,8 +39,9 @@ class learningTask(object):
         self._configuration.addMetrics(metrics)
         self._configuration.setPredictedField(targetMetric)
         #self._configuration.saveConfiguration(personId)
+        self._configuration.setDataFileLocation(personId)
 
-        matrix = self._createSampleMatrix(metrics, "sampleView", personId, startTime, endTime, timeStepInMs)
+        matrix = self._createSampleMatrix(metrics, personId, startTime, endTime, timeStepInMs)
 
         #TODO (structural) you can simplify this with syntax
         flags = ["" for metric in metrics]
@@ -57,7 +58,7 @@ class learningTask(object):
 
         self._dataRepository.put(matrix, personId)
 
-        self._nupic.permutations_runner(self._configuration.getConfiguration())
+        self._nupic.permutations_runner(self._configuration.getConfiguration(), personId)
 
     def forecast(self):
         pass
@@ -65,14 +66,14 @@ class learningTask(object):
     def anomoly(self):
         pass
 
-    def _createSampleMatrix(self, metrics, sampleViewName, personId, beginTime, endTime, timeStepInMs):
+    def _createSampleMatrix(self, metrics, personId, beginTime, endTime, timeStepInMs):
         matrix = []
         currentMetricCount = 0
         
         for metric in metrics:
             reduceFunction = self._createReduceFunction(metric['reduce'])
             print("call to database to get all samples for " + personId + metric['metric'])
-            samples = self._repository.getByView("samplesView", personId + metric['metric'])
+            samples = self._samplesRepository.getByView(personId + metric['metric'])
             currentTimeStepCount = 0
             print("got samples counting size")
             samplecount = 0
