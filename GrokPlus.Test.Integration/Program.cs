@@ -20,7 +20,7 @@ namespace GrokPlus.Test.Integration
         {
             //var subscriberPort = 6001;
             var publisherPort = 6000;
-            var address = "localhost";
+            var address = "127.0.0.1";
             //var address = "52.21.106.130";
 
             JsonConvert.DefaultSettings = () => new JsonSerializerSettings
