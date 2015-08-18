@@ -71,9 +71,11 @@ then
 	cd libcouchbase-2.5.2_centos7_x86_64/
 	rpm -ivh libcouchbase2-core-2.5.2-1.el7.centos.x86_64.rpm libcouchbase-devel-2.5.2-1.el7.centos.x86_64.rpm libcouchbase2-bin-2.5.2-1.el7.centos.x86_64.rpm
 
-	git clone https://github.com/tecmobo/grokplus.git
+	#Return to the root folder
+	cd ~
 
-	#Pip to install dependencies GrokPlus needs
+	#Clone grokplus from git and install dependencies
+	git clone https://github.com/tecmobo/grokplus.git
 	pip install couchbase
 	pip install pyzmq
 fi
