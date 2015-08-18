@@ -23,6 +23,6 @@ class nupicConfiguration(object):
     def getConfiguration(self):
         return self._configuration
 
-    def modelLastModed(self, id):
+    def modelLastModified(self, id):
         model = self._repository.get(id)
         return datetime.datetime.fromtimestamp(model['timestamp'])
