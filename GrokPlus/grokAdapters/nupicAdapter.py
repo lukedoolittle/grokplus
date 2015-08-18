@@ -2,7 +2,7 @@
 import os
 import datetime
 
-#import nupic.swarming.permutations_runner
+import nupic.swarming.permutations_runner
 
 class nupicAdapter(object):
     def __init__(self, repository):
