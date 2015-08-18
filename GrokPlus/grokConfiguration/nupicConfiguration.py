@@ -12,13 +12,14 @@ class nupicConfiguration(object):
         self._configuration['inferenceArgs']['predictedField'] = metric;
 
     def addMetrics(self, metrics):
+        self._configuration['includedFields'] = []
         for k in range (0, len(metrics)):
             metric = metrics[k];
-            self._configuration['includedFields'] = {"fieldName": metric['metric'], "fieldType": metric['metricType'], "maxValue": metric['maxValue'], "minValue": metric['minValue']}
+            self._configuration['includedFields'].append({"fieldName": metric['metric'], "fieldType": metric['metricType'], "maxValue": metric['maxValue'], "minValue": metric['minValue']})
     
     def setDataFileLocation(self, uniqueLocation):
         filename = os.path.join(uniqueLocation, self._csvFileLocation)
-        self._configuration['streamDef']['streams'][0]['source'] = "file://" + filename
+        self._configuration['streamDef']['streams'][0]['source'] = "file://" + str(filename)
 
     def getConfiguration(self):
         return self._configuration
