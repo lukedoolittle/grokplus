@@ -13,8 +13,10 @@ class learningTask(object):
 
     # TODO (structural) this should be part of its own class
     def createModelIfOld(self, personId, starttime, endtime, timestep):
-        modelAgeInHours = (datetime.datetime.now() - self._configuration.modelLastModified(personId)).seconds//3600
-        if modelAgeInHours > self._swarmIntervalInHours:
+        modelLastModified = self._configuration.modelLastModified(personId)
+        if modelLastModified != None:
+            modelAgeInHours = (datetime.datetime.now() - modelLastModified).seconds//3600
+        if modelLastModified == None or modelAgeInHours > self._swarmIntervalInHours:
             print("model is old! creating new...")
             self.createModel(personId, starttime, endtime, timestep)
 

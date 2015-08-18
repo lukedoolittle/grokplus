@@ -2,6 +2,7 @@
 
 from couchbase.views.params import Query
 from couchbase.bucket import Bucket
+from couchbase.exceptions import NotFoundError
 
 class repository(object):
     def __init__(self, bucketUrl, designDocument, viewName):
@@ -19,8 +20,12 @@ class repository(object):
 
     def get(self, id):
         bucket = Bucket(self._bucketUrl)
-        result = bucket.get(id)
-        return result.value; 
+        try:
+            result = bucket.get(id)
+            return result.value 
+        except NotFoundError:
+            return None
+        
 
     def getByView(self, parameter):
         bucket = Bucket(self._bucketUrl)

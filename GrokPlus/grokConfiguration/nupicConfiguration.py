@@ -25,4 +25,7 @@ class nupicConfiguration(object):
 
     def modelLastModified(self, id):
         model = self._repository.get(id)
-        return datetime.datetime.fromtimestamp(model['timestamp'])
+        if model != None:
+            return datetime.datetime.fromtimestamp(model['timestamp'])
+        else:
+            return None
