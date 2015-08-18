@@ -9,7 +9,7 @@ class nupicAdapter(object):
         self._repository = repository
 
     def permutations_runner(self, swarm_config, id):
-      model_params = nupic.swarming.permutations_runner.runWithConfig(swarm_config, {'maxWorkers': 8, 'overwrite':True})
+      model_params = nupic.swarming.permutations_runner.runWithConfig(swarm_config, {'maxWorkers': 8, 'overwrite':True}, outDir=str(id), permWorkDir=str(id))
       model_params['timestamp'] = datetime.datetime.now()
       self._repository.putJson(id, model_params)
       print("Finished creating model")
