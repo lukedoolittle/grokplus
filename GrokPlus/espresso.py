@@ -45,11 +45,11 @@ class espresso(object):
 
         pipe = self.zpipe(ctx)
 
-        print ("broker binding to subscriber port " + self._subscriberPort)
+        print ("Broker binding to subscriber port " + self._subscriberPort)
         subscriber = ctx.socket(zmq.XSUB)
         subscriber.bind("tcp://*:" + self._subscriberPort)
 
-        print ("broker binding to publisher port " + self._publisherPort)
+        print ("Broker binding to publisher port " + self._publisherPort)
         publisher = ctx.socket(zmq.XPUB)
         publisher.bind("tcp://*:" + self._publisherPort)
 
