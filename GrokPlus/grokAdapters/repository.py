@@ -16,7 +16,7 @@ class repository(object):
 
     def putJson(self, json, id):
         bucket = Bucket(self._bucketUrl)
-        bucket.insert(id.urn[9:], json)
+        bucket.insert(str(id), json)
 
     def get(self, id):
         bucket = Bucket(self._bucketUrl)
