@@ -15,9 +15,10 @@ $ sudo reboot
 After the reboot we'll run the helper script again which will download and install all the prereqs for nupic, couchbase, and for grokplus itself
 ```sh
 $ sudo ./setup.sh prereqs
-$ ./setup.sh grokplus
+$ ./setup.sh env
 ```
-Now we just have to start the server!
+Now we should start the two components (in two seperate sessions)
 ```sh
-$ ????
+$ python espresso.py
+$ python grokplus.py
 ```

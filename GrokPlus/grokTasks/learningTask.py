@@ -60,7 +60,7 @@ class learningTask(object):
 
         self._dataRepository.put(matrix, personId)
 
-        self._nupic.permutations_runner(self._configuration.getConfiguration(), personId)
+        self._nupic.permutations_runner(self._configuration, personId)
 
     def forecast(self):
         pass

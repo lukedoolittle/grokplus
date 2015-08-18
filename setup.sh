@@ -66,21 +66,21 @@ then
 	rpm --install couchbase-server-enterprise-3.0.3-centos6.x86_64.rpm
 
 	#Download and install C library for Python Couchbase interface
-	wget http://packages.couchbase.com/clients/c/couchbase-csdk-setup
-	sudo perl couchbase-csdk-setup
+	wget http://packages.couchbase.com/clients/c/libcouchbase-2.5.2_centos7_x86_64.tar
+	tar xf libcouchbase-2.5.2_centos7_x86_64.tar
+	cd libcouchbase-2.5.2_centos7_x86_64/
+	rpm -ivh libcouchbase2-core-2.5.2-1.el7.centos.x86_64.rpm libcouchbase-devel-2.5.2-1.el7.centos.x86_64.rpm libcouchbase2-bin-2.5.2-1.el7.centos.x86_64.rpm
+
+	git clone https://github.com/tecmobo/grokplus.git
+
+	#Pip to install dependencies GrokPlus needs
+	pip install couchbase
+	pip install pyzmq
 fi
 
 
-if [ $1 == "grokplus" ]
+if [ $1 == "env" ]
 then
-	git clone https://github.com/tecmobo/grokplus.git
-	cd grokplus/GrokPlus
-	pip install couchbase
-	pip install pyzmq
-
-	#Return to the root directory
-	cd ~
-	
 	#Configure couchbase
 	/opt/couchbase/bin/couchbase-cli cluster-init -c 127.0.0.1:8091  --cluster-init-username=Administrator --cluster-init-password=Password --cluster-init-port=8091 --cluster-init-ramsize=1024
 	/opt/couchbase/bin/couchbase-cli bucket-create -c 127.0.0.1:8091 --bucket=default --bucket-type=couchbase --bucket-ramsize=500 --bucket-replica=1 --user=Administrator --password=Password
@@ -90,4 +90,6 @@ then
 	echo "export NTA=\$NUPIC/build/release" >> /home/ec2-user/.bashrc
 	echo "export PYTHONPATH=\$PYTHONPATH:\$NTA/lib/python2.7/site-packages" >> /home/ec2-user/.bashrc
 	source ~/.bashrc
+
+	cd grokplus/GrokPlus
 fi

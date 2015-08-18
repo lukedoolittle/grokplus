@@ -24,6 +24,9 @@ class nupicConfiguration(object):
     def getConfiguration(self):
         return self._configuration
 
+    def getOutputLocation(self, uniqueLocation):
+        return os.path.join(os.getcwd(), uniqueLocation)
+
     def modelLastModified(self, id):
         model = self._repository.get(id)
         if model != None:
