@@ -70,9 +70,9 @@ namespace GrokPlus.Test.Integration
             using (var context = NetMQContext.Create())
             using (var pubSocket = context.CreatePublisherSocket())
             {
-                Console.WriteLine($"Publisher socket binding to port {port}...");
+                Console.WriteLine($"Publisher socket connecting to port {port}...");
                 pubSocket.Options.SendHighWatermark = 1000;
-                pubSocket.Bind($"tcp://{address}:{port}");
+                pubSocket.Connect($"tcp://{address}:{port}");
 
                 var personId = Guid.NewGuid();
 

@@ -45,9 +45,9 @@ class espresso(object):
 
         pipe = self.zpipe(ctx)
 
-        print ("broker connecting to subscriber port " + self._subscriberPort)
+        print ("broker binding to subscriber port " + self._subscriberPort)
         subscriber = ctx.socket(zmq.XSUB)
-        subscriber.connect("tcp://localhost:" + self._subscriberPort)
+        subscriber.bind("tcp://*:" + self._subscriberPort)
 
         print ("broker binding to publisher port " + self._publisherPort)
         publisher = ctx.socket(zmq.XPUB)
