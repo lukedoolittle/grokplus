@@ -3,26 +3,32 @@ import json
 import datetime
 
 class learningTask(object):
-    def __init__(self, configuration, samplesRepository, metricsRepository, csvRepository, nupic, swarmIntervalInHours):
+    def __init__(self, configuration, samplesRepository, metricsRepository, csvRepository, nupic):
         self._configuration = configuration
         self._samplesRepository = samplesRepository
         self._metricsRepository = metricsRepository
         self._nupic = nupic
         self._dataRepository = csvRepository
-        self._swarmIntervalInHours = swarmIntervalInHours
 
     # TODO (structural) this should be part of its own class
-    def createModelIfOld(self, personId, starttime, endtime, timestep):
+    def createModelIfOld(self, personId, swarmIntervalInHours):
         modelLastModified = self._configuration.modelLastModified(personId)
         if modelLastModified != None:
             modelAgeInHours = (datetime.datetime.now() - modelLastModified).seconds//3600
-        if modelLastModified == None or modelAgeInHours > self._swarmIntervalInHours:
-            print("model is old! creating new...")
-            self.createModel(personId, starttime, endtime, timestep)
+        if modelLastModified == None or modelAgeInHours > swarmIntervalInHours:
+            self.createModel(personId)
 
     def createModel(self, personId):
-        pass
         # TODO: have to figure out here how to determine the starttime, endtime and timestep
+        # For now maybe defaults like
+        # starttime = 7 days ago
+        # endtime = now
+        # timestep = 15 minutes???
+        timestep = 0.06283185307179587
+        starttime = 0
+        endtime = 94.18494775462199
+        self.createModel(personId, starttime, endtime, timestep)
+
 
     def createModel(self, personId, starttime, endtime, timestep):
         metrics = self._metricsRepository.getByView(personId)
@@ -40,7 +46,6 @@ class learningTask(object):
     def swarm(self, personId, metrics, targetMetric, startTime, endTime, timeStepInMs):
         self._configuration.addMetrics(metrics)
         self._configuration.setPredictedField(targetMetric)
-        #self._configuration.saveConfiguration(personId)
         self._configuration.setDataFileLocation(personId)
 
         matrix = self._createSampleMatrix(metrics, personId, startTime, endTime, timeStepInMs)
@@ -62,10 +67,14 @@ class learningTask(object):
 
         self._nupic.permutations_runner(self._configuration, personId)
 
-    def forecast(self):
+    def forecast(self, personId):
+        #model_params = self._repository.get(personId)
+        #model = ModelFactory.create(model_params)
         pass
 
-    def anomoly(self):
+    def anomoly(self, personId):
+        #model_params = self._repository.get(personId)
+        #model = ModelFactory.create(model_params)
         pass
 
     def _createSampleMatrix(self, metrics, personId, beginTime, endTime, timeStepInMs):

@@ -9,7 +9,7 @@
     "samplesMapFunction": "function (doc, meta) {    if (doc.personId && (doc.value || doc.value === 0) && doc.metric && doc.timestamp) {        emit(doc.personId+doc.metric, null);    }}",
     "metricsMapFunction": "function(doc, meta) {    if (doc.metric && doc.personId && (doc.minValue || doc.minValue === 0) && (doc.maxValue || doc.maxValue === 0)) {        emit(doc.personId, null);    }}",
     "sampleCountMapFunction": "function (doc, meta) {    if (doc.personId && (doc.value || doc.value === 0) && doc.metric && doc.timestamp) {        emit(doc.personId, null);    }}",
-    "sampleCountReduceFunction":  "_count",
+    "sampleCountReduceFunction": "_count",
     "csvFileLocation": "sampleswarm.csv",
     "swarmConfigurationFileLocation": "search_def.json",
     "swarmModelFileLocation" : "somelocation.txt",

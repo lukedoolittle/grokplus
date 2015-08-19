@@ -8,7 +8,6 @@ class zmqAdapter(object):
     def __init__(self, port, repository, scheduler, callback):
         ctx = zmq.Context.instance()
         self._subscriber = ctx.socket(zmq.SUB)
-        print ("Adapter connecting to subscriber port " + port)
         self._subscriber.connect("tcp://localhost:" + port)
         self._repository = repository
         self._scheduler = scheduler

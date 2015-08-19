@@ -24,30 +24,23 @@ class bootstrap(object):
         samplesViewName = configuration['samplesViewName']
         metricsViewName = configuration['metricsViewName']
 
-        myScheduler = scheduler(35)
-
-        # for testing purposes
-        timestep = 0.06283185307179587
-        starttime = 0
-        endtime = 94.18494775462199
+        
+        myScheduler = scheduler(60) #The scheduler checks every minute for a possible model update
+        databaseConfiguration = couchbaseConfiguration(designDocumentName, couchbaseUrl)
 
         container['repository'] = lambda: repository(couchbaseUrl, designDocumentName, "")
         container['samplesRepository'] = lambda: repository(couchbaseUrl, designDocumentName, samplesViewName)
         container['metricsRepository'] = lambda: repository(couchbaseUrl, designDocumentName, metricsViewName)
         container['csvRepository'] = lambda: csvRepository(configuration['csvFileLocation'])
-        container['subscriber'] = lambda: zmqAdapter(str(subscriberPort), container['repository'](), container['scheduler'](), lambda x: container['learningTask']().createModelIfOld(x, starttime, endtime, timestep))
+        container['subscriber'] = lambda: zmqAdapter(str(subscriberPort), container['repository'](), container['scheduler'](), lambda x: container['learningTask']().createModelIfOld(x, configuration['swarmIntervalInHours']))
         container['nupic'] = lambda: nupicAdapter(container['repository']())
         container['nupicConfiguration'] = lambda: nupicConfiguration(configuration['swarmConfiguration'], container['repository'](), configuration['csvFileLocation'])
-        container['learningTask'] = lambda: learningTask(container['nupicConfiguration'] (), container['samplesRepository'](), container['metricsRepository'](), container['csvRepository'](), container['nupic'](), configuration['swarmIntervalInHours'])
+        container['learningTask'] = lambda: learningTask(container['nupicConfiguration'] (), container['samplesRepository'](), container['metricsRepository'](), container['csvRepository'](), container['nupic']())
         container['espresso'] = lambda: espresso(publisherPort, subscriberPort)
         container['scheduler'] = lambda: myScheduler
 
-        databaseConfiguration = couchbaseConfiguration(designDocumentName, couchbaseUrl)
         databaseConfiguration.createMapView(configuration['samplesViewName'], configuration['samplesMapFunction'], None)
         databaseConfiguration.createMapView(configuration['metricsViewName'], configuration['metricsMapFunction'], None)
-        #databaseConfiguration.createMapView(configuration['sampleCountViewName'], configuration['sampleCountMapFunction'], configuration['sampleCountReduceFunction'])
-
-        # TODO need to prime the scheduler if there are any existing samples / models
 
         serviceLocator.setServiceLocator(container)
 
