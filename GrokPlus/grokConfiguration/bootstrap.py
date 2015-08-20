@@ -1,12 +1,13 @@
 ﻿from grokConfiguration.nupicConfiguration import nupicConfiguration
 from grokConfiguration.serviceLocator import serviceLocator
 from grokConfiguration.couchbaseConfiguration import couchbaseConfiguration
-from grokAdapters.repository import repository
-from grokAdapters.csvRepository import csvRepository
-from grokAdapters.zmqAdapter import zmqAdapter
-from grokAdapters.nupicAdapter import nupicAdapter
+from grokInfrastructure.repository import repository
+from grokInfrastructure.csvRepository import csvRepository
+from grokInfrastructure.zmqProxy import zmqProxy
+from grokInfrastructure.nupicProxy import nupicProxy
 from grokTasks.scheduler import scheduler
-from grokTasks.learningTask import learningTask
+from grokTasks.modelCreationTask import modelCreationTask
+from grokTasks.modelUpdateTask import modelUpdateTask
 from grokFramework.jsonPayload import fileToJson
 from espresso import espresso
 
@@ -24,7 +25,6 @@ class bootstrap(object):
         samplesViewName = configuration['samplesViewName']
         metricsViewName = configuration['metricsViewName']
 
-        
         myScheduler = scheduler(60) #The scheduler checks every minute for a possible model update
         databaseConfiguration = couchbaseConfiguration(designDocumentName, couchbaseUrl)
 
@@ -32,10 +32,11 @@ class bootstrap(object):
         container['samplesRepository'] = lambda: repository(couchbaseUrl, designDocumentName, samplesViewName)
         container['metricsRepository'] = lambda: repository(couchbaseUrl, designDocumentName, metricsViewName)
         container['csvRepository'] = lambda: csvRepository(configuration['csvFileLocation'])
-        container['subscriber'] = lambda: zmqAdapter(str(subscriberPort), container['repository'](), container['scheduler'](), lambda x: container['learningTask']().createModelIfOld(x, configuration['swarmIntervalInHours']))
-        container['nupic'] = lambda: nupicAdapter(container['repository']())
+        container['subscriber'] = lambda: zmqProxy(str(subscriberPort), container['repository'](), container['scheduler'](), lambda x: container['modelUpdateTask']().createModelIfOld(x))
+        container['nupic'] = lambda: nupicProxy(container['repository']())
         container['nupicConfiguration'] = lambda: nupicConfiguration(configuration['swarmConfiguration'], container['repository'](), configuration['csvFileLocation'])
-        container['learningTask'] = lambda: learningTask(container['nupicConfiguration'] (), container['samplesRepository'](), container['metricsRepository'](), container['csvRepository'](), container['nupic']())
+        container['modelCreationTask'] = lambda: modelCreationTask(container['nupicConfiguration'] (), container['samplesRepository'](), container['metricsRepository'](), container['csvRepository'](), container['nupic']())
+        container['modelUpdateTask'] = lambda: modelUpdateTask(container['nupicConfiguration'](), container['modelCreationTask'](), configuration['swarmIntervalInHours'])
         container['espresso'] = lambda: espresso(publisherPort, subscriberPort)
         container['scheduler'] = lambda: myScheduler
 

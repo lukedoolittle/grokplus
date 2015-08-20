@@ -2,7 +2,7 @@
 import json
 import datetime
 
-class learningTask(object):
+class modelCreationTask(object):
     def __init__(self, configuration, samplesRepository, metricsRepository, csvRepository, nupic):
         self._configuration = configuration
         self._samplesRepository = samplesRepository
@@ -10,15 +10,7 @@ class learningTask(object):
         self._nupic = nupic
         self._dataRepository = csvRepository
 
-    # TODO (structural) this should be part of its own class
-    def createModelIfOld(self, personId, swarmIntervalInHours):
-        modelLastModified = self._configuration.modelLastModified(personId)
-        if modelLastModified != None:
-            modelAgeInHours = (datetime.datetime.now() - modelLastModified).seconds//3600
-        if modelLastModified == None or modelAgeInHours > swarmIntervalInHours:
-            self.createModel(personId)
-
-    def createModel(self, personId):
+    def run(self, personId):
         # TODO: have to figure out here how to determine the starttime, endtime and timestep
         # For now maybe defaults like
         # starttime = 7 days ago
@@ -27,10 +19,7 @@ class learningTask(object):
         timestep = 0.06283185307179587
         starttime = 0
         endtime = 94.18494775462199
-        self.createModel(personId, starttime, endtime, timestep)
 
-
-    def createModel(self, personId, starttime, endtime, timestep):
         metrics = self._metricsRepository.getByView(personId)
 
         # remove any duplicate metric definitions; for now the pruning is arbitrary
@@ -67,30 +56,16 @@ class learningTask(object):
 
         self._nupic.permutations_runner(self._configuration, personId)
 
-    def forecast(self, personId):
-        #model_params = self._repository.get(personId)
-        #model = ModelFactory.create(model_params)
-        pass
-
-    def anomoly(self, personId):
-        #model_params = self._repository.get(personId)
-        #model = ModelFactory.create(model_params)
-        pass
-
     def _createSampleMatrix(self, metrics, personId, beginTime, endTime, timeStepInMs):
         matrix = []
         currentMetricCount = 0
         
         for metric in metrics:
             reduceFunction = self._createReduceFunction(metric['reduce'])
-            print("call to database to get all samples for " + personId + metric['metric'])
             samples = self._samplesRepository.getByView(personId + metric['metric'])
+
             currentTimeStepCount = 0
-            print("got samples counting size")
-            samplecount = 0
-            for sample in samples:
-                samplecount += 1
-            print("retrieved " + str(samplecount) + " samples")
+
             while True:
                 currentTimeStepStart = beginTime + (timeStepInMs * currentTimeStepCount)
                 currentTimeStepEnd = beginTime + (timeStepInMs * (currentTimeStepCount + 1))

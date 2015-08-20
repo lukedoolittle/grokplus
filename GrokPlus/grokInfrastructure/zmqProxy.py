@@ -4,7 +4,7 @@ import zmq
 import uuid
 import json
 
-class zmqAdapter(object):
+class zmqProxy(object):
     def __init__(self, port, repository, scheduler, callback):
         ctx = zmq.Context.instance()
         self._subscriber = ctx.socket(zmq.SUB)

@@ -4,7 +4,7 @@ import datetime
 
 import nupic.swarming.permutations_runner
 
-class nupicAdapter(object):
+class nupicProxy(object):
     def __init__(self, repository):
         self._repository = repository
 
@@ -16,6 +16,10 @@ class nupicAdapter(object):
       self._repository.putJson(json=model_params, id=id)
 
       # TODO do something with this result, with maybe a callback or something
+
+    def create_model(self):
+        model_params = self._repository.get(personId)
+        model = ModelFactory.create(model_params)
 
 
 

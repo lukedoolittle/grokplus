@@ -22,7 +22,7 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="grokAdapters\csvRepository.py">
+    <Compile Include="grokInfrastructure\csvRepository.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="grokConfiguration\bootstrap.py">
@@ -48,19 +48,28 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="grokplus.py" />
-    <Compile Include="grokAdapters\nupicAdapter.py">
+    <Compile Include="grokInfrastructure\nupicProxy.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="grokAdapters\repository.py">
+    <Compile Include="grokInfrastructure\repository.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="grokAdapters\zmqAdapter.py">
+    <Compile Include="grokInfrastructure\zmqProxy.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="grokAdapters\__init__.py">
+    <Compile Include="grokInfrastructure\__init__.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="grokTasks\learningTask.py">
+    <Compile Include="grokTasks\anomolyTask.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="grokTasks\modelCreationTask.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="grokTasks\modelUpdateTask.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="grokTasks\predictionTask.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="grokTasks\scheduler.py">
@@ -78,7 +87,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="grokConfiguration\" />
-    <Folder Include="grokAdapters\" />
+    <Folder Include="grokInfrastructure\" />
     <Folder Include="grokTasks\" />
     <Folder Include="grokTests\" />
     <Folder Include="grokFramework\" />
