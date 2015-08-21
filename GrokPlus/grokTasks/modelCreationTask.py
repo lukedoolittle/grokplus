@@ -1,5 +1,6 @@
 ﻿import random
 import json
+from datetime import timedelta, time
 import datetime
 
 class modelCreationTask(object):
@@ -9,16 +10,21 @@ class modelCreationTask(object):
         self._metricsRepository = metricsRepository
         self._nupic = nupic
         self._dataRepository = csvRepository
+    def _convertDateTimeToUNIXTimestamp(self, date):
+        time.mktime(datetime.datetime.strptime(date, "%d/%m/%Y").timetuple())
 
     def run(self, personId):
-        # TODO: have to figure out here how to determine the starttime, endtime and timestep
-        # For now maybe defaults like
         # starttime = 7 days ago
         # endtime = now
-        # timestep = 15 minutes???
-        timestep = 0.06283185307179587
-        starttime = 0
-        endtime = 94.18494775462199
+        # timestep = 15 minutes   
+        endtime = self._convertDateTimeToUNIXTimestamp(datetime.datetime.now())
+        starttime = self._convertDateTimeToUNIXTimestamp(datetime.datetime.now() - timedelta(days=7))
+        timestep = 1000 * 60 * 15
+
+        #FOR TESTING
+        #timestep = 0.06283185307179587
+        #starttime = 0
+        #endtime = 94.18494775462199
 
         metrics = self._metricsRepository.getByView(personId)
 
